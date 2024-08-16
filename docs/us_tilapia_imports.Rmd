@@ -1,0 +1,52 @@
+---
+title: "Talapia"
+output: html_document
+date: "2024-08-16"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(skimr)
+
+us_tilapia_imports <- read_csv(here::here("data", "us_tilapia_imports.csv"))
+
+summary(us_tilapia_imports)
+names(us_tilapia_imports)
+dim(us_tilapia_imports)
+skim(us_tilapia_imports)
+
+tilapia_imports_long <- us_tilapia_imports |>
+  pivot_longer(cols = -country, names_to = "year", values_to = "tilapia") 
+
+tilapia_imports_long <- tilapia_imports_long |>
+  mutate(year = as.numeric(year))
+
+yearly_tilapia_tot <- tilapia_imports_long |>
+  dplyr::group_by(year) |>
+  summarise(total_imports = sum(tilapia, na.rm = TRUE))
+
+ggplot(data = yearly_tilapia_tot, aes(x = year, y = total_imports)) +
+  geom_line() +
+  labs(y = "total tilapia imports (thousands of pounds)")
+
+ggsave(here::here("figs", "yearly_tilapia_tot.png"))
+
+imports_by_country <- tilapia_imports_long |>
+  dplyr::filter(country == c("Ecuador", "Honduras", "Costa Rica", "Mexico"), rm.na = TRUE)
+
+ggplot(data = imports_by_country, aes(x = year, y = tilapia, color = country)) +
+  geom_line() +
+  theme_minimal() +
+  labs(y = "tilapia imports (in thousands of pounds)")
+
+ggsave(here::here("figs", "imports_by_country.jpg"))
+```
+
+
+
+
+
